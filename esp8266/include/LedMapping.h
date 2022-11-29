@@ -34,6 +34,6 @@ const LedWord HOURS[] = {
     LedWord(0, 5, 1)  // ZWÖLF
 };
 
-const LedWord WORD_FUNK = LedWord(5, 0, 1);
+const LedWord WORD_FUNK = LedWord(0, 5, 1);
 
 #endif /* LedMapping_H */

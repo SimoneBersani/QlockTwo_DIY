@@ -304,10 +304,10 @@ void handleButtonTwoEvent(AceButton *button, uint8_t eventType,
             ambientLight.setBrightnessCorrection(ambientLight.getBrightnessCorrection() - 1);
             Serial.println("Brightness Correction: " + ambientLight.getBrightnessCorrection());
         };
-        // Serial.println("Current Brightness (out of 255):");
-        // Serial.println(ambientLight.getBrightness());
-        // Serial.println("with User Brightness Correction [-9 9]:");
-        // Serial.println(ambientLight.getBrightnessCorrection());
+        Serial.println("Current Brightness (out of 255):");
+        Serial.println(ambientLight.getBrightness());
+        Serial.println("with User Brightness Correction [-9 9]:");
+        Serial.println(ambientLight.getBrightnessCorrection());
         updateLedColor();
         showTime();
         break;
@@ -369,11 +369,11 @@ void handleButtonFourEvent(AceButton *button, uint8_t eventType,
         Serial.println("Button Four Clicked");
         updateClock();
         break;
-        /* case AceButton::kEventLongPressed:
-            Serial.println("Button Four Long Press");
-            wifiModule.reset();
-            delay(1000);
-            wifiModule.connect();
-            break; */
+    case AceButton::kEventLongPressed:
+        Serial.println("Button Four Long Press");
+        /* wifiModule.reset();
+        delay(1000);
+        wifiModule.connect(); */
+        break;
     }
 }
