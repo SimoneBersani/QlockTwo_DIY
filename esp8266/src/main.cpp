@@ -20,7 +20,7 @@ using namespace ace_button;
 //-----------------------------------------------------
 NeoTopology<MyPanelLayout> topo(PANEL_WIDTH, PANEL_HEIGHT);
 LedControlModule ledControlModule(topo);
-NeoPixelBusType pixelStrip(PIXEL_COUNT);
+NeoPixelBusType pixelStrip(110, 4);
 
 ClockModule clockModule(Wire, LOCAL_TIMEZONE, NTP_SERVER_NAME);
 
@@ -48,21 +48,20 @@ Config config;
 //-----------------------------------------------------
 // Function Declarations
 //-----------------------------------------------------
-void handleButtonOneEvent(AceButton*, uint8_t, uint8_t);
-void handleButtonTwoEvent(AceButton*, uint8_t, uint8_t);
-void handleButtonThreeEvent(AceButton*, uint8_t, uint8_t);
-void handleButtonFourEvent(AceButton*, uint8_t, uint8_t);
+void handleButtonOneEvent(AceButton *, uint8_t, uint8_t);
+void handleButtonTwoEvent(AceButton *, uint8_t, uint8_t);
+void handleButtonThreeEvent(AceButton *, uint8_t, uint8_t);
+void handleButtonFourEvent(AceButton *, uint8_t, uint8_t);
 
 void updateClock();
 void updateLedColor();
 
-void setButtonConfig(ButtonConfig* buttonConfig, ButtonConfig::EventHandler eventHandler);
+void setButtonConfig(ButtonConfig *buttonConfig, ButtonConfig::EventHandler eventHandler);
 void setupButtons();
 void showTime();
 
-void configModeCallback (WiFiManager *myWiFiManager);
+void configModeCallback(WiFiManager *myWiFiManager);
 void saveConfigCallback();
-
 
 //-----------------------------------------------------
 // Function Definitions
@@ -70,7 +69,8 @@ void saveConfigCallback();
 /**
  * Setup all Modules
  */
-void setup() {
+void setup()
+{
     Serial.begin(9600);
 
     pinMode(BUILTIN_LED, OUTPUT);
@@ -87,12 +87,10 @@ void setup() {
     setupButtons();
 
     wifiModule.setup(configModeCallback, saveConfigCallback);
-    //wifiModule.reset();
+    // wifiModule.reset();
     wifiModule.connect();
 
     clockModule.setup();
-
-
 
     updateClock();
     lastClockUpdate = millis();
@@ -108,7 +106,8 @@ void setup() {
  * @param buttonConfig
  * @param eventHandler
  */
-void setButtonConfig(ButtonConfig* buttonConfig, ButtonConfig::EventHandler eventHandler) {
+void setButtonConfig(ButtonConfig *buttonConfig, ButtonConfig::EventHandler eventHandler)
+{
     buttonConfig->setEventHandler(eventHandler);
     buttonConfig->setFeature(ButtonConfig::kFeatureClick);
     buttonConfig->setFeature(ButtonConfig::kFeatureDoubleClick);
@@ -119,7 +118,8 @@ void setButtonConfig(ButtonConfig* buttonConfig, ButtonConfig::EventHandler even
 /**
  * Setup all four Buttons.
  */
-void setupButtons() {
+void setupButtons()
+{
     pinMode(BUTTON_ONE_PIN, INPUT);
     buttonOne.init(BUTTON_ONE_PIN, LOW);
 
@@ -141,13 +141,16 @@ void setupButtons() {
 /**
  * Main Loop
  */
-void loop() {
-    if((millis() - lastClockUpdate) > (CLOCK_UPDATE_INTERVAL * 1000)) {
+void loop()
+{
+    if ((millis() - lastClockUpdate) > (CLOCK_UPDATE_INTERVAL * 1000))
+    {
         updateClock();
         lastClockUpdate = millis();
     }
 
-    if((millis() - lastShowTime) > (TIME_UPDATE_INTERVAL * 1000) && !showTimeDisabled) {
+    if ((millis() - lastShowTime) > (TIME_UPDATE_INTERVAL * 1000) && !showTimeDisabled)
+    {
         updateLedColor();
         showTime();
         lastShowTime = millis();
@@ -163,7 +166,8 @@ void loop() {
  * Gets called when WiFiManager enters configuration mode
  * @param myWiFiManager
  */
-void configModeCallback (WiFiManager *myWiFiManager) {
+void configModeCallback(WiFiManager *myWiFiManager)
+{
     Serial.println("Entered config mode");
 
     showTimeDisabled = true;
@@ -173,7 +177,8 @@ void configModeCallback (WiFiManager *myWiFiManager) {
 /**
  * Gets called when WifiManager when custom parameters have been set AND a connection has been established.
  */
-void saveConfigCallback() {
+void saveConfigCallback()
+{
     Serial.println("Save callback.");
     config.enableTime = wifiModule.getEnableTime();
     config.disableTime = wifiModule.getDisableTime();
@@ -186,22 +191,27 @@ void saveConfigCallback() {
 /**
  * Get Time from RTC and update if it is not correct from NTP. Only show time if it is bound in enabled time range.
  */
-void showTime() {
+void showTime()
+{
     Serial.println("disableTime: " + config.disableTime.toString());
     Serial.println("enableTime: " + config.enableTime.toString());
 
-    if(!clockModule.isDateTimeValid()) {
+    if (!clockModule.isDateTimeValid())
+    {
         updateClock();
     }
 
     const SimpleTime st = clockModule.getLocalSimpleTime();
 
-    if(config.disableTime == config.enableTime ||
+    if (config.disableTime == config.enableTime ||
         !(((config.disableTime > config.enableTime) && (config.disableTime <= st && config.enableTime < st)) ||
-        ((config.disableTime < config.enableTime) && (config.disableTime <= st && config.enableTime > st)))) {
+          ((config.disableTime < config.enableTime) && (config.disableTime <= st && config.enableTime > st))))
+    {
         Serial.println("Show Time: " + st.toString());
         ledControlModule.showTime(st, currentLedColor);
-    } else {
+    }
+    else
+    {
         Serial.println("Show Time: LED DISABLED");
         ledControlModule.disableLeds();
     }
@@ -210,9 +220,11 @@ void showTime() {
 /**
  * Connect to Wifi and update RTC over NTP.
  */
-void updateClock() {
+void updateClock()
+{
     Serial.println("Connect to wifi and update clock.");
-    if (!wifiModule.isConnected()) {
+    if (!wifiModule.isConnected())
+    {
         wifiModule.connect();
     }
 
@@ -222,7 +234,8 @@ void updateClock() {
 /**
  * Apply ambient light by dimming currentLedColor.
  */
-void updateLedColor() {
+void updateLedColor()
+{
     currentLedColor = LED_COLORS[currentLedColorId];
     int darken = 255 - ambientLight.getBrightness();
     currentLedColor.Darken(darken);
@@ -234,31 +247,36 @@ void updateLedColor() {
  * @param eventType
  * @param buttonState
  */
-void handleButtonOneEvent(AceButton* button, uint8_t eventType,
-                           uint8_t buttonState) {
-    switch (eventType) {
-        case AceButton::kEventClicked:
-            Serial.println("Button One Clicked");
-            currentLedColorId = (currentLedColorId + 1) % LED_COLORS_SIZE;
+void handleButtonOneEvent(AceButton *button, uint8_t eventType,
+                          uint8_t buttonState)
+{
+    switch (eventType)
+    {
+    case AceButton::kEventClicked:
+        Serial.println("Button One Clicked");
+        currentLedColorId = (currentLedColorId + 1) % LED_COLORS_SIZE;
 
-            config.setLedColor = currentLedColorId;
-            configModule.saveConfig(config);
+        config.setLedColor = currentLedColorId;
+        configModule.saveConfig(config);
 
-            updateLedColor();
+        updateLedColor();
+        showTime();
+        break;
+    case AceButton::kEventLongPressed:
+        Serial.println("Button One Long Press");
+        if (!showTimeDisabled)
+        {
+            Serial.println("Disable LED");
+            ledControlModule.disableLeds();
+            showTimeDisabled = true;
+        }
+        else
+        {
+            Serial.println("Enable LED");
             showTime();
-            break;
-        case AceButton::kEventLongPressed:
-            Serial.println("Button One Long Press");
-            if(!showTimeDisabled) {
-                Serial.println("Disable LED");
-                ledControlModule.disableLeds();
-                showTimeDisabled = true;
-            } else {
-                Serial.println("Enable LED");
-                showTime();
-                showTimeDisabled = false;
-            }
-            break;
+            showTimeDisabled = false;
+        }
+        break;
     }
 }
 
@@ -268,31 +286,34 @@ void handleButtonOneEvent(AceButton* button, uint8_t eventType,
  * @param eventType
  * @param buttonState
  */
-void handleButtonTwoEvent(AceButton* button, uint8_t eventType,
-                          uint8_t buttonState) {
-    switch (eventType) {
-        case AceButton::kEventClicked:
-            Serial.println("Button Two Clicked");
-            if(ambientLight.getBrightnessCorrection() > -9){
-              ambientLight.setBrightnessCorrection(ambientLight.getBrightnessCorrection() - 1);
-              Serial.println("Brightness Correction: " + ambientLight.getBrightnessCorrection());
-            };
-            // Serial.println("Current Brightness (out of 255):");
-            // Serial.println(ambientLight.getBrightness());
-            // Serial.println("with User Brightness Correction [-9 9]:");
-            // Serial.println(ambientLight.getBrightnessCorrection());
-            updateLedColor();
-            showTime();
-            break;
-        case AceButton::kEventLongPressed:
-            Serial.println("Button Two Long Press");
-            ambientLight.setBrightnessCorrection(0);
-            // Serial.println("User Brightness Correction Reset");
-            // Serial.println("Current Brightness (out of 255):");
-            // Serial.println(ambientLight.getBrightness());
-            updateLedColor();
-            showTime();
-            break;
+void handleButtonTwoEvent(AceButton *button, uint8_t eventType,
+                          uint8_t buttonState)
+{
+    switch (eventType)
+    {
+    case AceButton::kEventClicked:
+        Serial.println("Button Two Clicked");
+        if (ambientLight.getBrightnessCorrection() > -9)
+        {
+            ambientLight.setBrightnessCorrection(ambientLight.getBrightnessCorrection() - 1);
+            Serial.println("Brightness Correction: " + ambientLight.getBrightnessCorrection());
+        };
+        // Serial.println("Current Brightness (out of 255):");
+        // Serial.println(ambientLight.getBrightness());
+        // Serial.println("with User Brightness Correction [-9 9]:");
+        // Serial.println(ambientLight.getBrightnessCorrection());
+        updateLedColor();
+        showTime();
+        break;
+    case AceButton::kEventLongPressed:
+        Serial.println("Button Two Long Press");
+        ambientLight.setBrightnessCorrection(0);
+        // Serial.println("User Brightness Correction Reset");
+        // Serial.println("Current Brightness (out of 255):");
+        // Serial.println(ambientLight.getBrightness());
+        updateLedColor();
+        showTime();
+        break;
     }
 }
 
@@ -302,25 +323,28 @@ void handleButtonTwoEvent(AceButton* button, uint8_t eventType,
  * @param eventType
  * @param buttonState
  */
-void handleButtonThreeEvent(AceButton* button, uint8_t eventType,
-                          uint8_t buttonState) {
-    switch (eventType) {
-        case AceButton::kEventClicked:
-            Serial.println("Button Three Clicked");
-            if(ambientLight.getBrightnessCorrection() < 9){
-              ambientLight.setBrightnessCorrection(ambientLight.getBrightnessCorrection() + 1);
-              Serial.println("Brightness Correction: " + ambientLight.getBrightnessCorrection());
-            };
-            // Serial.println("Current Brightness (out of 255):");
-            // Serial.println(ambientLight.getBrightness());
-            // Serial.println("with User Brightness Correction [-9 9]:");
-            // Serial.println(ambientLight.getBrightnessCorrection());
-            updateLedColor();
-            showTime();
-            break;
-        case AceButton::kEventLongPressed:
-            Serial.println("Button Three Long Press");
-            break;
+void handleButtonThreeEvent(AceButton *button, uint8_t eventType,
+                            uint8_t buttonState)
+{
+    switch (eventType)
+    {
+    case AceButton::kEventClicked:
+        Serial.println("Button Three Clicked");
+        if (ambientLight.getBrightnessCorrection() < 9)
+        {
+            ambientLight.setBrightnessCorrection(ambientLight.getBrightnessCorrection() + 1);
+            Serial.println("Brightness Correction: " + ambientLight.getBrightnessCorrection());
+        };
+        // Serial.println("Current Brightness (out of 255):");
+        // Serial.println(ambientLight.getBrightness());
+        // Serial.println("with User Brightness Correction [-9 9]:");
+        // Serial.println(ambientLight.getBrightnessCorrection());
+        updateLedColor();
+        showTime();
+        break;
+    case AceButton::kEventLongPressed:
+        Serial.println("Button Three Long Press");
+        break;
     }
 }
 
@@ -330,18 +354,20 @@ void handleButtonThreeEvent(AceButton* button, uint8_t eventType,
  * @param eventType
  * @param buttonState
  */
-void handleButtonFourEvent(AceButton* button, uint8_t eventType,
-                           uint8_t buttonState) {
-    switch (eventType) {
-        case AceButton::kEventClicked:
-            Serial.println("Button Four Clicked");
-            updateClock();
-            break;
-        case AceButton::kEventLongPressed:
-            Serial.println("Button Four Long Press");
-            wifiModule.reset();
-            delay(1000);
-            wifiModule.connect();
-            break;
+void handleButtonFourEvent(AceButton *button, uint8_t eventType,
+                           uint8_t buttonState)
+{
+    switch (eventType)
+    {
+    case AceButton::kEventClicked:
+        Serial.println("Button Four Clicked");
+        updateClock();
+        break;
+    case AceButton::kEventLongPressed:
+        Serial.println("Button Four Long Press");
+        wifiModule.reset();
+        delay(1000);
+        wifiModule.connect();
+        break;
     }
 }
