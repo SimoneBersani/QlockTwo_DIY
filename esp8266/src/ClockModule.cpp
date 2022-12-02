@@ -10,7 +10,7 @@
 #include <Arduino.h>
 
 #ifndef countof
-#define countof(array) (sizeof(array)/sizeof(array[0]))
+#define countof(array) (sizeof(array) / sizeof(array[0]))
 #endif
 
 /**
@@ -22,17 +22,18 @@
 ClockModule::ClockModule(RtcDS3231<TwoWire> _rtc, Timezone _localTZ, String _ntpServerName) : rtc(_rtc),
                                                                                               localTZ(_localTZ),
                                                                                               ntpServerName(
-                                                                                                      _ntpServerName) {}
+                                                                                                  _ntpServerName) {}
 
 ClockModule::~ClockModule() {}
 
 /**
  * Setup NTP client and RTC connection.
  */
-void ClockModule::setup() {
+void ClockModule::setup()
+{
     ntpUDP.begin(localPort);
 
-    rtc.Begin();
+    rtc.Begin(5, 4);
 
     // never assume the Rtc was last configured by you, so
     // just clear them to your needed state
@@ -44,7 +45,8 @@ void ClockModule::setup() {
  * Either true if rtc time is not valid or the updateInterval is reached.
  * @return
  */
-bool ClockModule::isDateTimeValid() {
+bool ClockModule::isDateTimeValid()
+{
     return rtc.IsDateTimeValid();
 }
 
@@ -52,7 +54,8 @@ bool ClockModule::isDateTimeValid() {
  * Print RtcDateTime in human readable on Serial.
  * @param dt
  */
-void printDateTime(const RtcDateTime &dt) {
+void printDateTime(const RtcDateTime &dt)
+{
     char datestring[20];
 
     snprintf_P(datestring,
@@ -71,7 +74,8 @@ void printDateTime(const RtcDateTime &dt) {
  * Print time_t in human readable on Serial.
  * @param dt
  */
-void printDateTime(const time_t &dt) {
+void printDateTime(const time_t &dt)
+{
     char datestring[20];
 
     snprintf_P(datestring,
@@ -90,17 +94,20 @@ void printDateTime(const time_t &dt) {
  * Get current time from NTP server and update RTC.
  * @return true if updating successful
  */
-void ClockModule::update() {
+void ClockModule::update()
+{
     Serial.println("ClockModule: Update Clock.");
 
     int ntpAttempt = 0;
     time_t ntpTime = 0;
-    while (ntpTime == 0 && ntpAttempt < 10) {
+    while (ntpTime == 0 && ntpAttempt < 10)
+    {
         ntpTime = getNtpTime();
         ntpAttempt++;
     }
 
-    if (ntpTime == 0) {
+    if (ntpTime == 0)
+    {
         Serial.println("Update Clock FAILED");
         return;
     }
@@ -121,7 +128,8 @@ void ClockModule::update() {
  * @param time
  * @return Converted SimpleTime
  */
-SimpleTime convertToSimpleTime(const time_t &time) {
+SimpleTime convertToSimpleTime(const time_t &time)
+{
     return SimpleTime(hour(time), minute(time));
 }
 
@@ -129,7 +137,8 @@ SimpleTime convertToSimpleTime(const time_t &time) {
  * Get current time from RTC in UTC.
  * @return Current Time as time_t in UTC.
  */
-time_t ClockModule::getUtcTime() {
+time_t ClockModule::getUtcTime()
+{
     return rtc.GetDateTime().Epoch32Time();
 }
 
@@ -137,7 +146,16 @@ time_t ClockModule::getUtcTime() {
  * Get current time from RTC in local time. With timezone and daylight saving adjustment.
  * @return Current Local Time as SimpleTime.
  */
-SimpleTime ClockModule::getLocalSimpleTime() {
+SimpleTime ClockModule::getLocalSimpleTime()
+{
+    Serial.println("---");
+    time_t utcTime = getUtcTime();
+    printDateTime(utcTime);
+    time_t localTime = localTZ.toLocal(utcTime);
+    printDateTime(localTime);
+    // return convertToSimpleTime(localTime);
+    Serial.println("---");
+
     return convertToSimpleTime(localTZ.toLocal(getUtcTime()));
 }
 
@@ -147,10 +165,12 @@ SimpleTime ClockModule::getLocalSimpleTime() {
  * Get NTP time from set NTP server over UDP.
  * @return
  */
-time_t ClockModule::getNtpTime() {
+time_t ClockModule::getNtpTime()
+{
     IPAddress ntpServerIP; // NTP server's ip address
 
-    while (ntpUDP.parsePacket() > 0); // discard any previously received packets
+    while (ntpUDP.parsePacket() > 0)
+        ; // discard any previously received packets
 
     Serial.println("Transmit NTP Request");
     // get a random server from the pool
@@ -160,17 +180,19 @@ time_t ClockModule::getNtpTime() {
     Serial.println(ntpServerIP);
     this->sendNTPpacket(ntpServerIP);
     uint32_t beginWait = millis();
-    while (millis() - beginWait < 1500) {
+    while (millis() - beginWait < 1500)
+    {
         int size = ntpUDP.parsePacket();
-        if (size >= NTP_PACKET_SIZE) {
+        if (size >= NTP_PACKET_SIZE)
+        {
             Serial.println("Receive NTP Response");
-            ntpUDP.read(packetBuffer, NTP_PACKET_SIZE);  // read packet into the buffer
+            ntpUDP.read(packetBuffer, NTP_PACKET_SIZE); // read packet into the buffer
             unsigned long secsSince1900;
             // convert four bytes starting at location 40 to a long integer
-            secsSince1900 = (unsigned long) packetBuffer[40] << 24;
-            secsSince1900 |= (unsigned long) packetBuffer[41] << 16;
-            secsSince1900 |= (unsigned long) packetBuffer[42] << 8;
-            secsSince1900 |= (unsigned long) packetBuffer[43];
+            secsSince1900 = (unsigned long)packetBuffer[40] << 24;
+            secsSince1900 |= (unsigned long)packetBuffer[41] << 16;
+            secsSince1900 |= (unsigned long)packetBuffer[42] << 8;
+            secsSince1900 |= (unsigned long)packetBuffer[43];
             return secsSince1900 - 2208988800UL;
         }
     }
@@ -182,15 +204,16 @@ time_t ClockModule::getNtpTime() {
  * Send an NTP request to the time server at the given address
  * @param address IP address
  */
-void ClockModule::sendNTPpacket(IPAddress &address) {
+void ClockModule::sendNTPpacket(IPAddress &address)
+{
     // set all bytes in the buffer to 0
     memset(packetBuffer, 0, NTP_PACKET_SIZE);
     // Initialize values needed to form NTP request
     // (see URL above for details on the packets)
-    packetBuffer[0] = 0b11100011;   // LI, Version, Mode
-    packetBuffer[1] = 0;     // Stratum, or type of clock
-    packetBuffer[2] = 6;     // Polling Interval
-    packetBuffer[3] = 0xEC;  // Peer Clock Precision
+    packetBuffer[0] = 0b11100011; // LI, Version, Mode
+    packetBuffer[1] = 0;          // Stratum, or type of clock
+    packetBuffer[2] = 6;          // Polling Interval
+    packetBuffer[3] = 0xEC;       // Peer Clock Precision
     // 8 bytes of zero for Root Delay & Root Dispersion
     packetBuffer[12] = 49;
     packetBuffer[13] = 0x4E;
@@ -198,7 +221,7 @@ void ClockModule::sendNTPpacket(IPAddress &address) {
     packetBuffer[15] = 52;
     // all NTP fields have been given values, now
     // you can send a packet requesting a timestamp:
-    ntpUDP.beginPacket(address, 123); //NTP requests are to port 123
+    ntpUDP.beginPacket(address, 123); // NTP requests are to port 123
     ntpUDP.write(packetBuffer, NTP_PACKET_SIZE);
     ntpUDP.endPacket();
 }

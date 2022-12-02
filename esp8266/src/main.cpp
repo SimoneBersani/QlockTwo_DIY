@@ -28,7 +28,7 @@ WifiModule wifiModule(DEVICE_NAME);
 
 ConfigModule configModule(CONFIG_FILE_PATH);
 
-AmbientLightModule ambientLight(LIGHT_SENSOR_PIN, MAXIMUM_LIGHT_VALUE);
+AmbientLightModule ambientLight(LIGHT_SENSOR_PIN, MAXIMUM_LIGHT_VALUE, MINIMUM_LIGHT_VALUE);
 
 AceButton buttonOne(new ButtonConfig());
 AceButton buttonTwo(new ButtonConfig());
@@ -41,7 +41,7 @@ unsigned long lastLightUpdate = 0;
 bool showTimeDisabled = false;
 
 int currentLedColorId = 0;
-RgbwColor currentLedColor = LED_COLORS[currentLedColorId];
+RgbColor currentLedColor = LED_COLORS[currentLedColorId];
 
 Config config;
 
@@ -63,6 +63,11 @@ void showTime();
 void configModeCallback(WiFiManager *myWiFiManager);
 void saveConfigCallback();
 
+RgbColor red(255, 0, 0);
+RgbColor green(0, 255, 0);
+RgbColor blue(0, 0, 255);
+RgbColor white(255);
+RgbColor black(0);
 //-----------------------------------------------------
 // Function Definitions
 //-----------------------------------------------------
@@ -81,6 +86,7 @@ void setup()
     configModule.setup();
     config = configModule.loadConfig();
     currentLedColorId = config.setLedColor;
+
     updateLedColor();
 
     ledControlModule.setup(&pixelStrip);
@@ -161,6 +167,45 @@ void loop()
     buttonThree.check();
     buttonFour.check();
 }
+
+/* void loop()
+{
+    delay(5000);
+
+    Serial.println("Colors R, G, B, W...");
+
+    // set the colors,
+    for (int i = 0; i < 110; i++)
+    {
+        if (i % 2 == 0)
+        {
+            pixelStrip.SetPixelColor(i, RgbColor(255, 255, 255));
+        }
+        else
+        {
+            pixelStrip.SetPixelColor(i, RgbColor(0, 0, 0));
+        }
+    }
+    pixelStrip.Show();
+
+    delay(5000);
+
+    Serial.println("Off ...");
+
+    // turn off the pixels
+    for (int i = 0; i < 110; i++)
+    {
+        if (i % 2 == 0)
+        {
+            pixelStrip.SetPixelColor(i, RgbColor(0, 0, 0));
+        }
+        else
+        {
+            pixelStrip.SetPixelColor(i, RgbColor(255, 255, 255));
+        }
+    }
+    pixelStrip.Show();
+} */
 
 /**
  * Gets called when WiFiManager enters configuration mode
