@@ -63,11 +63,6 @@ void showTime();
 void configModeCallback(WiFiManager *myWiFiManager);
 void saveConfigCallback();
 
-RgbColor red(255, 0, 0);
-RgbColor green(0, 255, 0);
-RgbColor blue(0, 0, 255);
-RgbColor white(255);
-RgbColor black(0);
 //-----------------------------------------------------
 // Function Definitions
 //-----------------------------------------------------
@@ -260,6 +255,8 @@ void showTime()
         Serial.println("Show Time: LED DISABLED");
         ledControlModule.disableLeds();
     }
+
+    Serial.println("\n----\n");
 }
 
 /**
@@ -267,10 +264,14 @@ void showTime()
  */
 void updateClock()
 {
-    Serial.println("Connect to wifi and update clock.");
     if (!wifiModule.isConnected())
     {
+        Serial.println("Connection lost - connecting to wifi in order to update clock.");
         wifiModule.connect();
+    }
+    else
+    {
+        Serial.println("Device still connected - Updating clock.");
     }
 
     clockModule.update();

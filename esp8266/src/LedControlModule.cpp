@@ -45,6 +45,7 @@ void LedControlModule::showTime(const SimpleTime &simpleTime, const RgbColor &le
  * Show that clock is in Wifi configuration mode, in german show Word "Funk".
  * @param ledColor Optional, set LED color.
  */
+
 void LedControlModule::showConfigWifi(const RgbColor &ledColor)
 {
     pixelStrip->ClearTo(RgbColor(0));

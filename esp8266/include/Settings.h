@@ -18,8 +18,8 @@ const int LIGHT_SENSOR_PIN = A0;
 const int MAXIMUM_LIGHT_VALUE = 400; // tune for desired behaviour of ambient light adaption
 const int MINIMUM_LIGHT_VALUE = 150; // tune for desired behaviour of ambient light adaption
 
-const long TIME_UPDATE_INTERVAL = 10;     // in seconds
-const long CLOCK_UPDATE_INTERVAL = 86400; // in seconds
+const long TIME_UPDATE_INTERVAL = 10;                  // in seconds
+const long CLOCK_UPDATE_INTERVAL = 60 * 60 * 24 * 365; // in seconds
 
 const String NTP_SERVER_NAME = "us.pool.ntp.org";
 const TimeChangeRule TIME_CHANGE_RULE_DST = {"CEST", Last, Sun, Mar, 2, 120}; // Daylight time = UTC+2 hours
