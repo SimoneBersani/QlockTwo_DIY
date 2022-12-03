@@ -15,7 +15,7 @@ const LedWord AFTER_E = LedWord(8, 6, 1);     // E
 const LedWord MINUTE_FIVE = LedWord(5, 8, 6);           // CINQUE
 const LedWord MINUTE_TEN = LedWord(0, 10, 5);           // DIECI
 const LedWord MINUTE_QUARTER_INFIX = LedWord(2, 7, 2);  // UN
-const LedWord MINUTE_QUARTER_SUFFIX = LedWord(5, 7, 5); // QUARTO
+const LedWord MINUTE_QUARTER_SUFFIX = LedWord(5, 7, 6); // QUARTO
 const LedWord MINUTE_TWENTY = LedWord(0, 8, 5);         // VENTI
 const LedWord MINUTE_HALF = LedWord(6, 9, 5);           // MEZZA
 
